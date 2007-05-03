@@ -27,15 +27,15 @@ Value types can be defined as:
 
 
 * API:
-// JSON string
+# JSON string
 schema = '["string", "number"]'
-// or an object:
+# or an object:
 schema = ["any string", 1]
-validator = JSONValidator(schema);
-isValid = validator.validate(data) // data is a Python object  or a JSON string
+validator = JSONValidator(schema)
+isValid = validator.validate(data) # data is a Python object  or a JSON string
 
 Raise JSONError on invalid JSON (that can not be parsed),
-or JSONValidatioError (no JSON parse errors, but invalid for the schema specified)
+or JSONValidationError (no JSON parse errors, but invalid for the schema specified)
 '''
 
 '''
