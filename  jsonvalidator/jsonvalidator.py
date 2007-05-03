@@ -3,7 +3,7 @@
 * Requires simplejson (http://cheeseshop.python.org/pypi/simplejson)
 * Author: Maxim Derkachev (max.derkachev@gmail.com)
 * 
-Schema is a JSON-compliant string or Python object, is an example of a valid data structure.
+Schema is a JSON-compatible string or Python object, is an example of a valid data structure.
 Example schemas:
 *   '["string", "number"]'
     '["anything", 1]'
@@ -11,8 +11,8 @@ Example schemas:
     Invalid for {}, 1, "", [true], [1, false]
 
 *   {"one": 1, "two": {"three":"string?"}}
-    Valid for {one:0, two:{}}, {one:0, two:{three:"something"}}, {one:2, two:{three:""}}
-    Invalid for 1, "", [], {}, {one:0}, {one:0, two:{three:1}}, {one:0, two:{}, foo:"bar"}
+    Valid for {"one":0, "two":{}}, {"one":0, "two":{"three":"something"}}, {"one":2, "two":{"three":""}}
+    Invalid for 1, "", [], {}, {"one":0}, {"one":0, "two":{"three":1}}, {"one":0, "two":{}, "foo":"bar"}
 
 The following schemas are equivalent:
 1. {"a":"there can be a string"}, {"a": "string"}, {"a": ""}
