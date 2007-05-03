@@ -3,6 +3,7 @@
 * JSON schema data validation.
 * Requires json.js (http://json.org)
 * Author: Maxim Derkachev (max.derkachev@gmail.com)
+* http://www.ragbag.ru/2007/05/03/json_validator/lang/en/
 * 
 Schema is a JSON-compliant string or JavaScript object, is an example of a valid data structure.
 Example schemas:

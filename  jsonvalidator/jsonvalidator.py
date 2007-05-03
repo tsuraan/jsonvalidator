@@ -2,6 +2,7 @@
 * JSON schema data validation.
 * Requires simplejson (http://cheeseshop.python.org/pypi/simplejson)
 * Author: Maxim Derkachev (max.derkachev@gmail.com)
+* http://www.ragbag.ru/2007/05/03/json_validator/lang/en/
 * 
 Schema is a JSON-compatible string or Python object, is an example of a valid data structure.
 Example schemas:
@@ -108,7 +109,7 @@ class NumberHandler(BaseHandler):
 class BooleanHandler(BaseHandler):
     def validate(self, data):
         data = super(BooleanHandler, self).validate(data)
-        if data is not None and data not isinstance(data, bool):
+        if data is not None and not isinstance(data, bool):
             raise JSONValidationError("data is not a boolean: %s" % str(data))
         return data
 
@@ -205,4 +206,5 @@ class JSONValidator(object):
                 parsedData = simplejson.loads(data)
                 if not parsedData:
                     raise JSONError("invalid JSON in %s" % data)
+                data = parsedData
             return self.validator(data)
