@@ -1,6 +1,5 @@
 '''
 * JSON schema data validation.
-* Requires simplejson (http://cheeseshop.python.org/pypi/simplejson)
 * Author: Maxim Derkachev (max.derkachev@gmail.com)
 * http://www.ragbag.ru/2007/05/03/json_validator/lang/en/
 * 
@@ -70,7 +69,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
 
-import simplejson, types
+try:
+  import json
+except ImportError:
+  import simplejson as json
+
+import types
 
 class JSONValidationError(Exception):
     pass
@@ -197,13 +201,13 @@ class JSONValidator(object):
 
     def __init__(self, schema):
         if isinstance(schema, basestring):
-            schema = simplejson.loads(schema)
+            schema = json.loads(schema)
         _type, self.validator = getValidator(schema)
 
     def validate(self, data):
         if self.validator:
             if isinstance(data, basestring):
-                parsedData = simplejson.loads(data)
+                parsedData = json.loads(data)
                 if not parsedData:
                     raise JSONError("invalid JSON in %s" % data)
                 data = parsedData
