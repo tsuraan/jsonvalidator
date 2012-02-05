@@ -15,7 +15,7 @@ setup(
     packages=['jsonvalidator',
               ],
     author='Max Derkachev',
-    download_url='http://github.com/tsuraan/jsonvalidator/tarball/%s' % (version,),
+    download_url='http://github.com/tsuraan/jsonvalidator/tarball/jsonvalidator-%s' % (version,),
     classifiers=[
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
