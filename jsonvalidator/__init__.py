@@ -75,6 +75,7 @@ except ImportError:
   import simplejson as json
 
 import types
+import re
 
 class JSONValidationError(Exception):
     pass
@@ -103,6 +104,27 @@ class StringHandler(BaseHandler):
             raise JSONValidationError("data is not a string: %s" % str(data))
         return data
     
+class ReHandler(BaseHandler):
+  def __init__(self, schema, required):
+    super(ReHandler, self).__init__(schema, required)
+    self.pattern = schema
+    print 'my pattern is', self.pattern
+
+  def validate(self, data):
+    data  = super(ReHandler, self).validate(data)
+    try:
+      match = self.pattern.match(data)
+    except TypeError:
+      raise JSONValidationError(
+          "data cannot be used in a regex: %s" % str(data))
+    if not match:
+      raise JSONValidationError("data does not fit re: %s" % str(data))
+    return data
+  
+  @classmethod
+  def getType(self):
+    return type(re.compile(''))
+
 class NumberHandler(BaseHandler):
     def validate(self, data):
         data = super(NumberHandler, self).validate(data)
@@ -170,6 +192,7 @@ class ArrayHandler(BaseHandler):
             value = handler(value)
         return data        
 
+
 HANDLERS_BY_TYPE = {str: StringHandler,
            unicode : StringHandler,
            int: NumberHandler,
@@ -178,7 +201,8 @@ HANDLERS_BY_TYPE = {str: StringHandler,
            dict: ObjectHandler,
            list: ArrayHandler,
            bool: BooleanHandler,
-           type(None): NullHandler
+           type(None): NullHandler,
+           ReHandler.getType(): ReHandler,
           }
 
 def getValidator(schema):
