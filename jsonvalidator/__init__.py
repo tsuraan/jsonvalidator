@@ -114,7 +114,6 @@ class ReHandler(BaseHandler):
   def __init__(self, schema, required):
     super(ReHandler, self).__init__(schema, required)
     self.pattern = schema
-    print 'my pattern is', self.pattern
 
   def validate(self, data):
     data  = super(ReHandler, self).validate(data)
