@@ -169,15 +169,15 @@ class ObjectHandler(BaseHandler):
                 if not key in self.validKeys:
                     raise JSONValidationError("invalid object key: %s" %key)
         return data
-        
-        
+
+
 class ArrayHandler(BaseHandler):
     def __init__(self, schema, required):
         super(ArrayHandler, self).__init__(schema, required)
         self.handlers = {}
         for value in schema:
-            _type, handler = getValidator(value)
-            self.handlers[_type] = handler
+            tpe, handler = getValidator(value)
+            self.handlers[tpe] = handler
 
     def validate(self, data):
         data = super(ArrayHandler, self).validate(data)
@@ -207,16 +207,16 @@ HANDLERS_BY_TYPE = {str: StringHandler,
 
 def getValidator(schema):
     required = True
-    _type = type(schema)
-    if _type in types.StringTypes:
+    tpe = type(schema)
+    if tpe in types.StringTypes:
         if schema.startswith("number"):
-            _type = int
+            tpe = int
         elif schema.startswith("bool"):
-            _type = bool
+            tpe = bool
         required = not schema.endswith('?')
-    handler = HANDLERS_BY_TYPE.get(_type, None)
+    handler = HANDLERS_BY_TYPE.get(tpe, None)
     if handler:
-        return _type, handler(schema, required)
+        return tpe, handler(schema, required)
     else:
         raise JSONError("Unsupported JSON type in schema")
 
