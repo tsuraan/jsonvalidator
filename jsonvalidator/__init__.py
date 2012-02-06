@@ -77,6 +77,12 @@ except ImportError:
 import types
 import re
 
+class PermissiveObject(dict):
+  """Wrap your dictionary in this (or build a dictionary from this by using
+  the normal dictionary keyword constructor) and the validator will use the
+  permissive dictionary validation instead of the default strict validation.
+  """
+
 class JSONValidationError(Exception):
     pass
 
@@ -170,6 +176,14 @@ class ObjectHandler(BaseHandler):
                     raise JSONValidationError("invalid object key: %s" %key)
         return data
 
+class PermissiveObjectHandler(ObjectHandler):
+  """Just like a normal object handler except that it ignores unknown keys in
+  the validating dictionary.
+  """
+  def __init__(self, schema, required):
+    super(PermissiveObjectHandler, self).__init__(schema, required)
+    self.validKeys = None
+
 
 class ArrayHandler(BaseHandler):
     def __init__(self, schema, required):
@@ -203,6 +217,7 @@ HANDLERS_BY_TYPE = {str: StringHandler,
            bool: BooleanHandler,
            type(None): NullHandler,
            ReHandler.getType(): ReHandler,
+           PermissiveObject: PermissiveObjectHandler,
           }
 
 def getValidator(schema):
