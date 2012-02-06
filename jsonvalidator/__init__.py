@@ -197,8 +197,11 @@ class ArrayHandler(BaseHandler):
         data = super(ArrayHandler, self).validate(data)
         if not isinstance(data, list):
             raise JSONValidationError("data is not an array")
-        if self.handlers and not self.handlers.get(types.NoneType, False) and not data:
+        elif not self.handlers:
+            return data
+        elif not self.handlers.get(types.NoneType, False) and not data:
             raise JSONValidationError("this array should not be empty")
+
         for value in data:
             handler = self.handlers.get(type(value), None)
             if not handler:
