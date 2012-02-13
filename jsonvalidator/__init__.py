@@ -84,32 +84,32 @@ class PermissiveObject(dict):
   """
 
 class JSONValidationError(Exception):
-    pass
+  pass
 
 class JSONError(Exception):
-    pass
+  pass
 
 
 class BaseHandler(object):
-    def __init__(self, schema, required):
-        self.required = required
-        
-    def __call__(self, data):
-        return self.validate(data)
+  def __init__(self, schema, required):
+    self.required = required
+    
+  def __call__(self, data):
+    return self.validate(data)
 
-    def validate(self, data):
-        if data is None and self.required:
-            raise JSONValidationError("Required field is missing")
-        return data
-                                      
+  def validate(self, data):
+    if data is None and self.required:
+      raise JSONValidationError("Required field is missing")
+    return data
+                    
 
 class StringHandler(BaseHandler):
-    def validate(self, data):
-        data = super(StringHandler, self).validate(data)
-        if data and not isinstance(data, basestring):
-            raise JSONValidationError("data is not a string: %s" % str(data))
-        return data
-    
+  def validate(self, data):
+    data = super(StringHandler, self).validate(data)
+    if data and not isinstance(data, basestring):
+      raise JSONValidationError("data is not a string: %s" % str(data))
+    return data
+  
 class ReHandler(BaseHandler):
   def __init__(self, schema, required):
     super(ReHandler, self).__init__(schema, required)
@@ -131,125 +131,126 @@ class ReHandler(BaseHandler):
     return type(re.compile(''))
 
 class NumberHandler(BaseHandler):
-    def validate(self, data):
-        data = super(NumberHandler, self).validate(data)
-        if data and not isinstance(data, (int, long, float)):
-            raise JSONValidationError("data is not a number: %s" % str(data))
-        return data
+  def validate(self, data):
+    data = super(NumberHandler, self).validate(data)
+    if data and not isinstance(data, (int, long, float)):
+      raise JSONValidationError("data is not a number: %s" % str(data))
+    return data
 
 class BooleanHandler(BaseHandler):
-    def validate(self, data):
-        data = super(BooleanHandler, self).validate(data)
-        if data is not None and not isinstance(data, bool):
-            raise JSONValidationError("data is not a boolean: %s" % str(data))
-        return data
+  def validate(self, data):
+    data = super(BooleanHandler, self).validate(data)
+    if data is not None and not isinstance(data, bool):
+      raise JSONValidationError("data is not a boolean: %s" % str(data))
+    return data
 
 class NullHandler(BaseHandler):
-    def validate(self, data):
-        if not isinstance(data, types.NoneType):
-            raise JSONValidationError("data is not null: %s" % str(data))
-        return data
+  def validate(self, data):
+    if not isinstance(data, types.NoneType):
+      raise JSONValidationError("data is not null: %s" % str(data))
+    return data
 
 
 class ObjectHandler(BaseHandler):
-    def __init__(self, schema, required):
-        super(ObjectHandler, self).__init__(schema, required)
-        self.handlers = {}
-        self.validKeys = set()
-        for key, value in schema.items():
-            _type, handler = getValidator(value)
-            self.handlers[key] = handler
-            self.validKeys.add(key)
-        
-    def validate(self, data):
-        data = super(ObjectHandler, self).validate(data)
-        if not isinstance(data, dict):
-            raise JSONValidationError("data is not an object: %s" %str(data))
-        handlers = self.handlers
-        for key, handler in handlers.items():
-            keyData = data.get(key, None)
-            keydata = handler(keyData)
-        if self.validKeys:
-            for key in data:
-                if not key in self.validKeys:
-                    raise JSONValidationError("invalid object key: %s" %key)
-        return data
+  def __init__(self, schema, required):
+    super(ObjectHandler, self).__init__(schema, required)
+    self.handlers = {}
+    self.validKeys = set()
+    for key, value in schema.items():
+      _type, handler = getValidator(value)
+      self.handlers[key] = handler
+      self.validKeys.add(key)
+    
+  def validate(self, data):
+    data = super(ObjectHandler, self).validate(data)
+    if not isinstance(data, dict):
+      raise JSONValidationError("data is not an object: %s" %str(data))
+    handlers = self.handlers
+    for key, handler in handlers.items():
+      keyData = data.get(key, None)
+      keydata = handler(keyData)
+    if self.validKeys:
+      for key in data:
+        if not key in self.validKeys:
+          raise JSONValidationError("invalid object key: %s" %key)
+    return data
 
 class PermissiveObjectHandler(ObjectHandler):
   """Just like a normal object handler except that it ignores unknown keys in
   the validating dictionary.
   """
   def __init__(self, schema, required):
-    super(PermissiveObjectHandler, self).__init__(schema, required)
-    self.validKeys = None
+  super(PermissiveObjectHandler, self).__init__(schema, required)
+  self.validKeys = None
 
 
 class ArrayHandler(BaseHandler):
-    def __init__(self, schema, required):
-        super(ArrayHandler, self).__init__(schema, required)
-        self.handlers = {}
-        for value in schema:
-            tpe, handler = getValidator(value)
-            self.handlers[tpe] = handler
+  def __init__(self, schema, required):
+    super(ArrayHandler, self).__init__(schema, required)
+    self.handlers = {}
+    for value in schema:
+      tpe, handler = getValidator(value)
+      self.handlers[tpe] = handler
 
-    def validate(self, data):
-        data = super(ArrayHandler, self).validate(data)
-        if not isinstance(data, list):
-            raise JSONValidationError("data is not an array")
-        elif not self.handlers:
-            return data
-        elif not self.handlers.get(types.NoneType, False) and not data:
-            raise JSONValidationError("this array should not be empty")
+  def validate(self, data):
+    data = super(ArrayHandler, self).validate(data)
+    if not isinstance(data, list):
+      raise JSONValidationError("data is not an array")
+    elif not self.handlers:
+      return data
+    elif not self.handlers.get(types.NoneType, False) and not data:
+      raise JSONValidationError("this array should not be empty")
 
-        for value in data:
-            handler = self.handlers.get(type(value), None)
-            if not handler:
-                raise JSONValidationError("invalid data member in array: %s" % str(value))
-            value = handler(value)
-        return data        
+    for value in data:
+      handler = self.handlers.get(type(value), None)
+      if not handler:
+        raise JSONValidationError("invalid data member in array: %s" % str(value))
+      value = handler(value)
+    return data    
 
 
-HANDLERS_BY_TYPE = {str: StringHandler,
-           unicode : StringHandler,
-           int: NumberHandler,
-           long: NumberHandler,
-           float: NumberHandler,
-           dict: ObjectHandler,
-           list: ArrayHandler,
-           bool: BooleanHandler,
-           type(None): NullHandler,
-           ReHandler.getType(): ReHandler,
-           PermissiveObject: PermissiveObjectHandler,
-          }
+HANDLERS_BY_TYPE = {
+    str                 : StringHandler,
+    unicode             : StringHandler,
+    int                 : NumberHandler,
+    long                : NumberHandler,
+    float               : NumberHandler,
+    dict                : ObjectHandler,
+    list                : ArrayHandler,
+    bool                : BooleanHandler,
+    type(None)          : NullHandler,
+    ReHandler.getType() : ReHandler,
+    PermissiveObject    : PermissiveObjectHandler,
+    }
 
 def getValidator(schema):
-    required = True
-    tpe = type(schema)
-    if tpe in types.StringTypes:
-        if schema.startswith("number"):
-            tpe = int
-        elif schema.startswith("bool"):
-            tpe = bool
-        required = not schema.endswith('?')
-    handler = HANDLERS_BY_TYPE.get(tpe, None)
-    if handler:
-        return tpe, handler(schema, required)
-    else:
-        raise JSONError("Unsupported JSON type in schema")
+  required = True
+  tpe = type(schema)
+  if tpe in types.StringTypes:
+    if schema.startswith("number"):
+      tpe = int
+    elif schema.startswith("bool"):
+      tpe = bool
+    required = not schema.endswith('?')
+  handler = HANDLERS_BY_TYPE.get(tpe, None)
+  if handler:
+    return tpe, handler(schema, required)
+  else:
+    raise JSONError("Unsupported JSON type in schema")
 
 class JSONValidator(object):
-    validator = None
+  validator = None
 
-    def __init__(self, schema):
-        if isinstance(schema, basestring):
-            schema = json.loads(schema)
-        _type, self.validator = getValidator(schema)
+  def __init__(self, schema):
+    if isinstance(schema, basestring):
+      schema = json.loads(schema)
+    _type, self.validator = getValidator(schema)
 
-    def validate(self, data):
-        if self.validator:
-            if isinstance(data, basestring):
-                parsedData = json.loads(data)
-                if not parsedData:
-                    raise JSONError("invalid JSON in %s" % data)
-                data = parsedData
-            return self.validator(data)
+  def validate(self, data):
+    if self.validator:
+      if isinstance(data, basestring):
+        parsedData = json.loads(data)
+        if not parsedData:
+          raise JSONError("invalid JSON in %s" % data)
+        data = parsedData
+      return self.validator(data)
