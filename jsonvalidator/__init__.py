@@ -206,8 +206,9 @@ class ArrayHandler(BaseHandler):
     super(ArrayHandler, self).__init__(schema, required)
     self.handlers = {}
     for value in schema:
-      tpe, handler = getValidator(value)
-      self.handlers[tpe] = handler
+      _tpe, handler = getValidator(value)
+      for syn in getValidatorSynonyms(handler):
+        self.handlers[syn] = handler
 
   def validate(self, data, key=None):
     data = super(ArrayHandler, self).validate(data, key)
@@ -224,10 +225,12 @@ class ArrayHandler(BaseHandler):
       nextkey = '%s/%%s' % key
     else:
       nextkey = '%s'
+
     for idx, value in enumerate(data):
       handler = self.handlers.get(type(value), None)
       if not handler:
-        message = "Element at index %d has invalid type %s" % (idx, value)
+        message = "Element at %s has invalid type %s: %s" % (
+            nextkey % idx, type(value), value)
         raise JSONValidationError(message)
       value = handler(value, nextkey % idx)
     return data    
@@ -261,6 +264,14 @@ def getValidator(schema):
     return tpe, handler(schema, required)
   else:
     raise JSONError("Unsupported JSON type in schema")
+
+def getValidatorSynonyms(vdor):
+  vtype    = type(vdor)
+  synonyms = set()
+  for key, val in HANDLERS_BY_TYPE.items():
+    if val == vtype:
+      synonyms.add(key)
+  return synonyms
 
 class JSONValidator(object):
   validator = None
