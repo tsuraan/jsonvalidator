@@ -94,8 +94,8 @@ class BaseHandler(object):
   def __init__(self, schema, required):
     self.required = required
     
-  def __call__(self, data):
-    return self.validate(data)
+  def __call__(self, data, key=None):
+    return self.validate(data, key)
 
   def validate(self, data, key=None):
     if data is None and self.required:
