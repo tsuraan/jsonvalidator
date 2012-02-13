@@ -177,9 +177,13 @@ class ObjectHandler(BaseHandler):
       raise JSONValidationError(message)
 
     handlers = self.handlers
+    if mykey:
+      nextkey = '%s/%%s' % mykey
+    else:
+      nextkey = '%s'
     for key, handler in handlers.items():
       keyData = data.get(key, None)
-      keydata = handler(keyData, '%s/%s' % (mykey, key))
+      keydata = handler(keyData, nextkey % key)
 
     if self.validKeys:
       for key in data:
@@ -216,12 +220,16 @@ class ArrayHandler(BaseHandler):
       message = _keyMessage(key, "should not be empty: %s" % data)
       raise JSONValidationError(message)
 
+    if key:
+      nextkey = '%s/%%s' % key
+    else:
+      nextkey = '%s'
     for idx, value in enumerate(data):
       handler = self.handlers.get(type(value), None)
       if not handler:
         message = "Element at index %d has invalid type %s" % (idx, value)
         raise JSONValidationError(message)
-      value = handler(value, '%s/%s' % (key, idx))
+      value = handler(value, nextkey % idx)
     return data    
 
 
