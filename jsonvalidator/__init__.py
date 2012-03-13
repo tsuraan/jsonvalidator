@@ -83,6 +83,13 @@ class PermissiveObject(dict):
   permissive dictionary validation instead of the default strict validation.
   """
 
+class OptionalFunction(object):
+  def __init__(self, fn):
+    self.__fn = fn
+
+  def __call__(self, *args, **kwargs):
+    return self.__fn(*args, **kwargs)
+
 class JSONValidationError(Exception):
   pass
 
@@ -159,6 +166,19 @@ class NullHandler(BaseHandler):
       raise JSONValidationError(message)
     return data
 
+class FunctionHandler(BaseHandler):
+  def __init__(self, schema, required):
+    super(FunctionHandler, self).__init__(schema, required)
+    self.fn = schema
+
+  def validate(self, data, key=None):
+    data = super(FunctionHandler, self).validate(data, key)
+    self.fn(data)
+    return data
+
+class OptionalFunctionHandler(FunctionHandler):
+  def __init__(self, schema, _required):
+    super(OptionalFunctionHandler, self).__init__(schema, False)
 
 class ObjectHandler(BaseHandler):
   def __init__(self, schema, required):
@@ -166,7 +186,7 @@ class ObjectHandler(BaseHandler):
     self.handlers = {}
     self.validKeys = set()
     for key, value in schema.items():
-      _type, handler = getValidator(value)
+      handler = getValidator(value)
       self.handlers[key] = handler
       self.validKeys.add(key)
     
@@ -206,7 +226,7 @@ class ArrayHandler(BaseHandler):
     super(ArrayHandler, self).__init__(schema, required)
     self.handlers = {}
     for value in schema:
-      _tpe, handler = getValidator(value)
+      handler = getValidator(value)
       for syn in getValidatorSynonyms(handler):
         self.handlers[syn] = handler
 
@@ -248,6 +268,7 @@ HANDLERS_BY_TYPE = {
     type(None)          : NullHandler,
     ReHandler.getType() : ReHandler,
     PermissiveObject    : PermissiveObjectHandler,
+    OptionalFunction    : OptionalFunctionHandler,
     }
 
 def getValidator(schema):
@@ -261,7 +282,9 @@ def getValidator(schema):
     required = not schema.endswith('?')
   handler = HANDLERS_BY_TYPE.get(tpe, None)
   if handler:
-    return tpe, handler(schema, required)
+    return handler(schema, required)
+  elif callable(schema):
+    return FunctionHandler(schema, required)
   else:
     raise JSONError("Unsupported JSON type in schema")
 
@@ -279,7 +302,7 @@ class JSONValidator(object):
   def __init__(self, schema):
     if isinstance(schema, basestring):
       schema = json.loads(schema)
-    _type, self.validator = getValidator(schema)
+    self.validator = getValidator(schema)
 
   def validate(self, data):
     if self.validator:
