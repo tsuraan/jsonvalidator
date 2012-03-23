@@ -87,8 +87,9 @@ class OptionalFunction(object):
   def __init__(self, fn):
     self.__fn = fn
 
-  def __call__(self, *args, **kwargs):
-    return self.__fn(*args, **kwargs)
+  def __call__(self, data):
+    if data is not None:
+      return self.__fn(data)
 
 class JSONValidationError(Exception):
   pass
